@@ -1,0 +1,6 @@
+{
+  "name": "Stock Inventory Management System (SIMS)",
+  "description": "A complete MERN stack application for managing spare parts, stock-in, stock-out transactions, and generating daily reports. Built for the Rwanda TSS National Practical Examination 2024-2025.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
