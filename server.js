@@ -46,66 +46,63 @@ const startServer = async () => {
   await connectDB();
 
   // Auto-seed for rapid testing in AI Studio
-  const dbStatus = getDbStatus();
-  if (dbStatus.isUsingMock) {
-    try {
-      const User = (await import('./backend/models/User.js')).default;
-      const SparePart = (await import('./backend/models/SparePart.js')).default;
-      const StockIn = (await import('./backend/models/StockIn.js')).default;
-      const usersLength = (await User.find()).length;
+  try {
+    const User = (await import('./backend/models/User.js')).default;
+    const SparePart = (await import('./backend/models/SparePart.js')).default;
+    const StockIn = (await import('./backend/models/StockIn.js')).default;
+    const usersLength = (await User.find()).length;
 
-      if (usersLength === 0) {
-        console.log('📝 Seeding empty mock storage files for active preview convenience...');
-        const bcrypt = (await import('bcryptjs')).default;
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash('Admin123@', salt);
+    if (usersLength === 0) {
+      console.log('📝 Seeding empty database for active preview convenience...');
+      const bcrypt = (await import('bcryptjs')).default;
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash('Admin123@', salt);
 
-        await User.create({
-          username: 'System Admin',
-          email: 'admin@gmail.com',
-          password: hashedPassword,
+      await User.create({
+        username: 'System Admin',
+        email: 'admin@gmail.com',
+        password: hashedPassword,
+      });
+
+      const parts = [
+        {
+          name: 'Spark Plug Bosch X5',
+          category: 'Engine Parts',
+          quantity: 120,
+          unitPrice: 4500,
+        },
+        {
+          name: 'Oil Filter Sakura',
+          category: 'Filters',
+          quantity: 85,
+          unitPrice: 3200,
+        },
+        {
+          name: 'Front Brake Pads Toyota',
+          category: 'Braking System',
+          quantity: 50,
+          unitPrice: 12500,
+        },
+        {
+          name: 'AC Belts Mitsuboshi',
+          category: 'Belts & Chains',
+          quantity: 95,
+          unitPrice: 1800,
+        },
+      ];
+
+      const createdParts = await SparePart.insertMany(parts);
+      for (const p of createdParts) {
+        await StockIn.create({
+          sparePart: p._id,
+          stockInQuantity: p.quantity,
+          stockInDate: new Date(),
         });
-
-        const parts = [
-          {
-            name: 'Spark Plug Bosch X5',
-            category: 'Engine Parts',
-            quantity: 120,
-            unitPrice: 4500,
-          },
-          {
-            name: 'Oil Filter Sakura',
-            category: 'Filters',
-            quantity: 85,
-            unitPrice: 3200,
-          },
-          {
-            name: 'Front Brake Pads Toyota',
-            category: 'Braking System',
-            quantity: 50,
-            unitPrice: 12500,
-          },
-          {
-            name: 'AC Belts Mitsuboshi',
-            category: 'Belts & Chains',
-            quantity: 95,
-            unitPrice: 1800,
-          },
-        ];
-
-        const createdParts = await SparePart.insertMany(parts);
-        for (const p of createdParts) {
-          await StockIn.create({
-            sparePart: p._id,
-            stockInQuantity: p.quantity,
-            stockInDate: new Date(),
-          });
-        }
-        console.log('✅ Fallback database seeded. Login credentials: admin@gmail.com / Admin123@');
       }
-    } catch (err) {
-      console.warn('⚠️ Fallback database autoseed error:', err.message);
+      console.log('✅ Database seeded. Login credentials: admin@gmail.com / Admin123@');
     }
+  } catch (err) {
+    console.warn('⚠️ Database autoseed error:', err.message);
   }
 
   if (process.env.NODE_ENV !== 'production') {
